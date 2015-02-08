@@ -6,6 +6,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -26,6 +29,7 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
     public View onCreateView(LayoutInflater inflater,ViewGroup container,Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_map, container, false);
         Log.d(TAG, "onCreateView");
+        setHasOptionsMenu(true);
         FragmentManager fm = getChildFragmentManager();
         mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.map_container);
         if (mapFragment == null) {
@@ -36,6 +40,34 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         mapFragment.getMapAsync(this);
 
         return rootView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        getActivity().getMenuInflater().inflate(R.menu.menu_map, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.submenu_mode_map:
+                Log.d(TAG, "Map selected");
+                item.setChecked(true);
+                map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                break;
+            case R.id.submenu_mode_satellite:
+                Log.d(TAG, "Satellite selected");
+                item.setChecked(true);
+                map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+                break;
+            case R.id.submenu_mode_terrain:
+                Log.d(TAG, "Terrain selected");
+                item.setChecked(true);
+                map.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
