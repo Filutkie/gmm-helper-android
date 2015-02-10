@@ -2,20 +2,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/map_mode"
+        android:id="@+id/menu_map_type"
         app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_cake_white_24dp"
         android:title="Map mode">
         <menu>
             <group android:checkableBehavior="single">
                 <item
                     android:title="Map"
-                    android:id="@+id/submenu_mode_map" />
+                    android:id="@+id/submenu_maptype_map" />
                 <item
                     android:title="Satellite"
-                    android:id="@+id/submenu_mode_satellite" />
+                    android:id="@+id/submenu_maptype_satellite" />
                 <item
                     android:title="Terrain"
-                    android:id="@+id/submenu_mode_terrain" />
+                    android:id="@+id/submenu_maptype_terrain" />
             </group>
         </menu>
     </item>
