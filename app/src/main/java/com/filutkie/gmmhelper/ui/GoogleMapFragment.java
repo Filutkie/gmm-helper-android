@@ -1,5 +1,7 @@
 package com.filutkie.gmmhelper.ui;
 
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -12,6 +14,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.filutkie.gmmhelper.R;
 import com.google.android.gms.maps.GoogleMap;
@@ -20,6 +24,10 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
 public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         GoogleMap.OnMyLocationChangeListener,
         GoogleMap.OnMapLongClickListener {
@@ -27,7 +35,8 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
     private SupportMapFragment mapFragment;
 
     private GoogleMap map;
-    private Button invalidateButton;
+    private Button button;
+    private TextView geocoderTextView;
 
     private static final String TAG = "GoogleMapFragment";
     private String KEY_CHECKED_MENU = "key_checked_menu";
@@ -48,11 +57,11 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
                     .commit();
         }
         mapFragment.getMapAsync(this);
-        invalidateButton = (Button) rootView.findViewById(R.id.button_invalidate);
-        invalidateButton.setOnClickListener(new View.OnClickListener() {
+        button = (Button) rootView.findViewById(R.id.button_invalidate);
+        geocoderTextView = (TextView) rootView.findViewById(R.id.textview_geocoder);
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getActivity().invalidateOptionsMenu();
             }
         });
         if (savedInstanceState != null) {
@@ -138,5 +147,25 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public void onMapLongClick(LatLng latLng) {
         map.addMarker(new MarkerOptions().draggable(true).position(latLng));
+        getMyLocationAddress(latLng);
+    }
+
+    public void getMyLocationAddress(LatLng latlng) {
+        Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
+            if (addresses != null && addresses.size() != 0) {
+                Address fetchedAddress = addresses.get(0);
+                StringBuilder strAddress = new StringBuilder();
+                for (int i = 0; i < fetchedAddress.getMaxAddressLineIndex(); i++) {
+                    strAddress.append(fetchedAddress.getAddressLine(i)).append(", ");
+                }
+                geocoderTextView.setText(strAddress.toString());
+            } else
+                geocoderTextView.setText("No results found");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(getActivity(), "IOException raised", Toast.LENGTH_SHORT).show();
+        }
     }
 }
