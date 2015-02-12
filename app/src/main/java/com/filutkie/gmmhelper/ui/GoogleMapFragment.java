@@ -1,11 +1,11 @@
 package com.filutkie.gmmhelper.ui;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,9 +18,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.filutkie.gmmhelper.R;
+import com.filutkie.gmmhelper.database.MyMarkerDatasource;
+import com.filutkie.gmmhelper.model.MyMarker;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -32,11 +35,14 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         GoogleMap.OnMyLocationChangeListener,
         GoogleMap.OnMapLongClickListener {
 
-    private SupportMapFragment mapFragment;
+    private MapFragment mapFragment;
 
     private GoogleMap map;
     private Button button;
     private TextView geocoderTextView;
+
+    private MyMarkerDatasource markerDatasource;
+    private List<MyMarker> myMarkerList;
 
     private static final String TAG = "GoogleMapFragment";
     private String KEY_CHECKED_MENU = "key_checked_menu";
@@ -50,12 +56,13 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         Log.d(TAG, "onCreateView");
         setHasOptionsMenu(true);
         FragmentManager fm = getChildFragmentManager();
-        mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.map_container);
+        mapFragment = (MapFragment) fm.findFragmentById(R.id.map_container);
         if (mapFragment == null) {
-            mapFragment = SupportMapFragment.newInstance();
+            mapFragment = MapFragment.newInstance();
             fm.beginTransaction().replace(R.id.map_container, mapFragment)
                     .commit();
         }
+        markerDatasource = new MyMarkerDatasource(getActivity());
         mapFragment.getMapAsync(this);
         button = (Button) rootView.findViewById(R.id.button_invalidate);
         geocoderTextView = (TextView) rootView.findViewById(R.id.textview_geocoder);
@@ -73,6 +80,13 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        map = ((MapFragment) getChildFragmentManager().findFragmentById(R.id.map_container)).getMap();
+        map.setMyLocationEnabled(true);
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
         map.setMyLocationEnabled(false);
@@ -86,6 +100,11 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         googleMap.setOnMyLocationChangeListener(this);
         googleMap.setOnMapLongClickListener(this);
         googleMap.setMyLocationEnabled(true);
+
+        myMarkerList = markerDatasource.getAllMarkers();
+        for (MyMarker m : myMarkerList) {
+            placeMarker(m);
+        }
     }
 
     @Override
@@ -137,21 +156,32 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         outState.putInt(KEY_MAP_TYPE, VALUE_MAP_TYPE);
     }
 
-
     @Override
     public void onMyLocationChange(Location location) {
         Log.d(TAG, "onMyLocationChange");
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
         map.setOnMyLocationChangeListener(null);
     }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        map.addMarker(new MarkerOptions().draggable(true).position(latLng));
-        getMyLocationAddress(latLng);
+        MyMarker marker = new MyMarker("title", latLng.latitude, latLng.longitude);
+        String address = getLocationAddress(marker.getPosition());
+        marker.setAddress(address);
+        placeMarker(marker);
+        markerDatasource.addMarker(marker);
+        geocoderTextView.setText(address);
     }
 
-    public void getMyLocationAddress(LatLng latlng) {
+    private void placeMarker(MyMarker marker) {
+        map.addMarker(new MarkerOptions().draggable(true).position(marker.getPosition()).title(marker.getTitle()));
+    }
+
+    // TODO move from ui thread
+    public String getLocationAddress(LatLng latlng) {
         Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+        String resultString = "";
         try {
             List<Address> addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
             if (addresses != null && addresses.size() != 0) {
@@ -160,12 +190,13 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
                 for (int i = 0; i < fetchedAddress.getMaxAddressLineIndex(); i++) {
                     strAddress.append(fetchedAddress.getAddressLine(i)).append(", ");
                 }
-                geocoderTextView.setText(strAddress.toString());
+                resultString = strAddress.toString();
             } else
-                geocoderTextView.setText("No results found");
+                resultString = "Address not found";
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(getActivity(), "IOException raised", Toast.LENGTH_SHORT).show();
         }
+        return resultString;
     }
 }

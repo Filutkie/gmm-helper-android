@@ -17,7 +17,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.container, new GoogleMapFragment()).commit();
+            getFragmentManager().beginTransaction().replace(R.id.container, new GoogleMapFragment()).commit();
         }
     }
 
