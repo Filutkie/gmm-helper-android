@@ -1,54 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:umano="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/sliding_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:gravity="bottom"
+    umano:panelHeight="100dp"
+    umano:shadowHeight="4dp"
+    umano:dragView="@+id/dragView">
 
-    <FrameLayout
-        android:id="@+id/map_container"
+    <!-- Main screen content -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:layout_weight="1" >
+        android:orientation="vertical">
 
-    </FrameLayout>
-
-    <FrameLayout
-        android:layout_width="fill_parent"
-        android:layout_height="96dp">
-
-        <LinearLayout
-            android:orientation="horizontal"
+        <FrameLayout
+            android:id="@+id/map_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_horizontal|bottom"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingBottom="8dp"
-            android:paddingTop="8dp" >
+            android:layout_height="0dp"
+            android:layout_gravity="center"
+            android:layout_weight="1">
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="debug"
-                android:id="@+id/button_invalidate"
-                android:layout_marginLeft="16dp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="fill_parent"
+            android:layout_height="96dp">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal|bottom"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="debug"
+                    android:id="@+id/button_invalidate"
+                    android:layout_marginLeft="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="geocoder"
+                    android:id="@+id/textview_geocoder" />
+
+                <ViewSwitcher xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:id="@+id/viewSwitcher"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
+
+                    <TextView
+                        android:id="@+id/clickable_text_view"
+                        android:clickable="true"
+                        android:text="some text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <EditText
+                        android:id="@+id/hidden_edit_view"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:text="some text"/>
+                </ViewSwitcher>
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="geocoder"
-                android:id="@+id/textview_geocoder" />
-        </LinearLayout>
+                android:text="debug panel"
+                android:id="@+id/textView"
+                android:layout_gravity="bottom"
+                android:alpha="0.54"
+                android:layout_marginLeft="8dp"
+                android:layout_marginBottom="8dp" />
+        </FrameLayout>
+    </LinearLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="debug panel"
-            android:id="@+id/textView"
-            android:layout_gravity="bottom"
-            android:alpha="0.54"
-            android:layout_marginLeft="8dp"
-            android:layout_marginBottom="8dp" />
-    </FrameLayout>
-</LinearLayout>
+    <!-- Sliding panel -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#eeeeee"
+        android:orientation="vertical"
+        android:clickable="false"
+        android:focusable="false"
+        android:id="@+id/dragView">
+
+        <include
+            android:id="@+id/include_panel_content"
+            layout="@layout/sliding_panel_content" />
+
+    </LinearLayout>
+
+</com.sothree.slidinguppanel.SlidingUpPanelLayout>

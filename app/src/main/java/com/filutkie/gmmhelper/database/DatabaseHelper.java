@@ -7,6 +7,8 @@ import android.util.Log;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
+    private static DatabaseHelper sInstance;
+
     public static final String DATABASE_NAME = "gmmhelper.db";
     public static final int DATABASE_VERSION = 1;
 
@@ -18,11 +20,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_MARKER_LATITUDE = "latitude";
     public static final String COLUMN_MARKER_LONGITUDE = "longitude";
 
-    public DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, factory, version);
+    public static DatabaseHelper getInstance(Context context) {
+
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        // See this article for more information: http://bit.ly/6LRzfx
+        if (sInstance == null) {
+            sInstance = new DatabaseHelper(context.getApplicationContext());
+        }
+        return sInstance;
     }
 
-    public DatabaseHelper(Context context) {
+    private DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 

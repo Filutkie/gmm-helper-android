@@ -17,7 +17,7 @@ public class MyMarkerDatasource {
     private DatabaseHelper dbHelper;
 
     public MyMarkerDatasource(Context context) {
-        dbHelper = new DatabaseHelper(context);
+        dbHelper = DatabaseHelper.getInstance(context);
     }
 
     public List<MyMarker> getAllMarkers() {

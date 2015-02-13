@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ViewSwitcher;
 
 import com.filutkie.gmmhelper.R;
 import com.filutkie.gmmhelper.database.MyMarkerDatasource;
@@ -35,26 +36,43 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         GoogleMap.OnMyLocationChangeListener,
         GoogleMap.OnMapLongClickListener {
 
-    private MapFragment mapFragment;
+    private static final String TAG = "GoogleMapFragment";
 
+    private MapFragment mapFragment;
     private GoogleMap map;
     private Button button;
-    private TextView geocoderTextView;
 
+    private TextView geocoderTextView;
     private MyMarkerDatasource markerDatasource;
+    TextView myTV;
+    ViewSwitcher switcher;
+
     private List<MyMarker> myMarkerList;
 
-    private static final String TAG = "GoogleMapFragment";
-    private String KEY_CHECKED_MENU = "key_checked_menu";
-    private String KEY_MAP_TYPE = "key_map_type";
+    private static final String KEY_CHECKED_MENU = "key_checked_menu";
+    private static final String KEY_MAP_TYPE = "key_map_type";
     private int VALUE_CHECKED_MENU = R.id.submenu_maptype_map;
     private int VALUE_MAP_TYPE = GoogleMap.MAP_TYPE_NORMAL;
+    private boolean IS_SCREEN_ROTATED;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_map, container, false);
         Log.d(TAG, "onCreateView");
         setHasOptionsMenu(true);
+
+        button = (Button) rootView.findViewById(R.id.button_invalidate);
+        geocoderTextView = (TextView) rootView.findViewById(R.id.textview_geocoder);
+        switcher = (ViewSwitcher) rootView.findViewById(R.id.viewSwitcher);
+        myTV = (TextView) switcher.findViewById(R.id.clickable_text_view);
+
+        myTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switcher.showNext(); //or switcher.showPrevious();
+                myTV.setText("value");
+            }
+        });
         FragmentManager fm = getChildFragmentManager();
         mapFragment = (MapFragment) fm.findFragmentById(R.id.map_container);
         if (mapFragment == null) {
@@ -62,20 +80,17 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
             fm.beginTransaction().replace(R.id.map_container, mapFragment)
                     .commit();
         }
+
         markerDatasource = new MyMarkerDatasource(getActivity());
         mapFragment.getMapAsync(this);
-        button = (Button) rootView.findViewById(R.id.button_invalidate);
-        geocoderTextView = (TextView) rootView.findViewById(R.id.textview_geocoder);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        });
+
         if (savedInstanceState != null) {
             VALUE_CHECKED_MENU = savedInstanceState.getInt(KEY_CHECKED_MENU);
             VALUE_MAP_TYPE = savedInstanceState.getInt(KEY_MAP_TYPE);
+            IS_SCREEN_ROTATED = true;
+        } else {
+            IS_SCREEN_ROTATED = false;
         }
-
         return rootView;
     }
 
@@ -117,7 +132,10 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        menu.findItem(VALUE_CHECKED_MENU).setChecked(true);
+        MenuItem item = menu.findItem(VALUE_CHECKED_MENU);
+        if (!item.isChecked()) {
+            item.setChecked(true);
+        }
     }
 
     @Override
@@ -159,8 +177,10 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public void onMyLocationChange(Location location) {
         Log.d(TAG, "onMyLocationChange");
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+        if (!IS_SCREEN_ROTATED) {
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+        }
         map.setOnMyLocationChangeListener(null);
     }
 
