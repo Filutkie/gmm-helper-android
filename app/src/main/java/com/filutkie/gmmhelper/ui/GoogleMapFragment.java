@@ -6,7 +6,10 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -27,6 +31,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,7 +39,7 @@ import java.util.Locale;
 
 public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         GoogleMap.OnMyLocationChangeListener,
-        GoogleMap.OnMapLongClickListener {
+        GoogleMap.OnMapLongClickListener, SlidingUpPanelLayout.PanelSlideListener {
 
     private static final String TAG = "GoogleMapFragment";
 
@@ -42,18 +47,23 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
     private GoogleMap map;
     private Button button;
 
+    private ActionBar actionbar;
     private TextView geocoderTextView;
     private MyMarkerDatasource markerDatasource;
-    TextView myTV;
-    ViewSwitcher switcher;
+    private SlidingUpPanelLayout mLayout;
+    private TextView myTV;
+    private ViewSwitcher switcher;
+
+    private FrameLayout panelHeader;
 
     private List<MyMarker> myMarkerList;
-
     private static final String KEY_CHECKED_MENU = "key_checked_menu";
     private static final String KEY_MAP_TYPE = "key_map_type";
     private int VALUE_CHECKED_MENU = R.id.submenu_maptype_map;
     private int VALUE_MAP_TYPE = GoogleMap.MAP_TYPE_NORMAL;
+
     private boolean IS_SCREEN_ROTATED;
+    private int actionbarHeight;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -65,6 +75,13 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         geocoderTextView = (TextView) rootView.findViewById(R.id.textview_geocoder);
         switcher = (ViewSwitcher) rootView.findViewById(R.id.viewSwitcher);
         myTV = (TextView) switcher.findViewById(R.id.clickable_text_view);
+        mLayout = (SlidingUpPanelLayout) rootView.findViewById(R.id.sliding_layout);
+        panelHeader = (FrameLayout) rootView.findViewById(R.id.framelayout_detail_header);
+        actionbar = ((ActionBarActivity) getActivity()).getSupportActionBar();
+
+        mLayout.setPanelSlideListener(this);
+        mLayout.setAnchorPoint(0.6f);
+        mLayout.setCoveredFadeColor(0);
 
         myTV.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -99,6 +116,11 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         super.onResume();
         map = ((MapFragment) getChildFragmentManager().findFragmentById(R.id.map_container)).getMap();
         map.setMyLocationEnabled(true);
+        TypedValue tv = new TypedValue();
+        if (getActivity().getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true))
+        {
+            actionbarHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+        }
     }
 
     @Override
@@ -115,7 +137,7 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
         googleMap.setOnMyLocationChangeListener(this);
         googleMap.setOnMapLongClickListener(this);
         googleMap.setMyLocationEnabled(true);
-
+        googleMap.setPadding(0, actionbarHeight, 0, 0);
         myMarkerList = markerDatasource.getAllMarkers();
         for (MyMarker m : myMarkerList) {
             placeMarker(m);
@@ -218,5 +240,45 @@ public class GoogleMapFragment extends Fragment implements OnMapReadyCallback,
             Toast.makeText(getActivity(), "IOException raised", Toast.LENGTH_SHORT).show();
         }
         return resultString;
+    }
+
+    @Override
+    public void onPanelSlide(View panel, float slideOffset) {
+//        Log.i(TAG, "onPanelSlide, offset " + slideOffset);
+        if (slideOffset > 0) {
+            myTV.setText("sliding");
+            panelHeader.setBackgroundResource(R.color.color_primary);
+            // TODO optimize method calls
+            if (slideOffset > .8) {
+                actionbar.hide();
+                map.getUiSettings().setMyLocationButtonEnabled(false);
+            } else {
+                actionbar.show();
+                map.getUiSettings().setMyLocationButtonEnabled(true);
+            }
+        } else {
+            myTV.setText("ended");
+            panelHeader.setBackgroundResource(R.color.color_background);
+        }
+    }
+
+    @Override
+    public void onPanelExpanded(View panel) {
+        Log.i(TAG, "onPanelExpanded");
+    }
+
+    @Override
+    public void onPanelCollapsed(View panel) {
+        Log.i(TAG, "onPanelCollapsed");
+    }
+
+    @Override
+    public void onPanelAnchored(View panel) {
+        Log.i(TAG, "onPanelAnchored");
+    }
+
+    @Override
+    public void onPanelHidden(View panel) {
+        Log.i(TAG, "onPanelHidden");
     }
 }
