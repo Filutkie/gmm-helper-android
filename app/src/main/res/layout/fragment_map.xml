@@ -6,84 +6,47 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="bottom"
-    umano:panelHeight="0dp"
-    app:umanoPanelHeight="96dp"
+    app:umanoPanelHeight="@dimen/sliding_panel_height"
     app:umanoDragView="@+id/dragView"
+    app:umanoOverlay="true"
+    app:umanoInitialState="hidden"
     app:umanoShadowHeight="4dp">
 
     <!-- Main screen content -->
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
         <FrameLayout
             android:id="@+id/map_container"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:layout_weight="1">
+            android:layout_alignParentBottom="true"/>
 
-        </FrameLayout>
+        <ImageButton
+            android:id="@+id/angry_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/button_map_tool"
+            android:shadowColor="#A8A8A8"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="5"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="false"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
+            android:drawableStart="@drawable/ic_map_marker_grey600_24dp"
+            android:src="@drawable/ic_map_marker_grey600_24dp"
+            android:layout_alignParentEnd="true"
+            android:elevation="1dp"
+            android:cropToPadding="false"
+            android:focusable="true" />
 
-        <FrameLayout
-            android:layout_width="fill_parent"
-            android:layout_height="96dp">
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center_horizontal|bottom"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin"
-                android:paddingBottom="8dp"
-                android:paddingTop="8dp">
-
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="debug"
-                    android:id="@+id/button_invalidate"
-                    android:layout_marginLeft="16dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="geocoder"
-                    android:id="@+id/textview_geocoder" />
-
-                <ViewSwitcher xmlns:android="http://schemas.android.com/apk/res/android"
-                    android:id="@+id/viewSwitcher"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent">
-
-                    <TextView
-                        android:id="@+id/clickable_text_view"
-                        android:clickable="true"
-                        android:text="some text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                    <EditText
-                        android:id="@+id/hidden_edit_view"
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:text="some text"/>
-                </ViewSwitcher>
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="debug panel"
-                android:id="@+id/textView"
-                android:layout_gravity="bottom"
-                android:alpha="0.54"
-                android:layout_marginStart="8dp"
-                android:layout_marginBottom="8dp" />
-        </FrameLayout>
-    </LinearLayout>
+    </RelativeLayout>
 
     <!-- Sliding panel -->
     <LinearLayout
