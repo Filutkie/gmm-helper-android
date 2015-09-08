@@ -5,7 +5,16 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/color_primary</item>
         <item name="colorPrimaryDark">@color/color_primary_dark</item>
-        <item name="windowActionBarOverlay">true</item>
+        <item name="colorAccent">@color/color_accent</item>
+
+        <item name="searchViewStyle">@style/MySearchViewStyle</item>
+        <item name="toolbarStyle">@style/Widget.AppCompat.Toolbar</item>
+
+    </style>
+
+
+    <style name="MySearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <!--<item name="searchIcon">@drawable/ic_search_white_24dp</item>-->
     </style>
 
 </resources>

@@ -2,7 +2,15 @@
 <resources>
 
     <string name="app_name">GMM Helper</string>
-    <string name="hello_world">Hello world!</string>
+
+    <!-- Actions -->
     <string name="action_settings">Settings</string>
+    <string name="action_maptype">Map type</string>
+    <string name="action_map">Map</string>
+    <string name="action_satellite">Satellite</string>
+    <string name="action_terrain">Terrain</string>
+    <string name="action_search">Search</string>
+    <string name="action_marker_list">Markers list</string>
+    <string name="action_sorting">Sorting</string>
 
 </resources>

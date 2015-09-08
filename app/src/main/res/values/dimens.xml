@@ -3,4 +3,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="sliding_panel_height">96dp</dimen>
+    <dimen name="dialog_window_height">600dp</dimen>
+    <dimen name="dialog_window_width">500dp</dimen>
 </resources>
