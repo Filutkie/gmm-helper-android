@@ -1,4 +1,4 @@
-package com.filutkie.gmmhelper.database;
+package com.filutkie.gmmhelper.data;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -25,20 +25,23 @@ public class MyMarkerDatasource {
         List<MyMarker> markerList = new ArrayList<>();
         Cursor cursor = database.query(DatabaseHelper.TABLE_MARKERS,
                 null, null, null, null, null, null);
+        int idColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_ID);
         int titleColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_TITLE);
         int descriptionColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_DESCRIPTION);
         int addressColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_ADDRESS);
         int latitudeColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_LATITUDE);
         int longitudeColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_LONGITUDE);
+
         MyMarker marker;
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast()) {
-                marker = new MyMarker();
-                marker.setTitle(cursor.getString(titleColIndex));
-                marker.setDescription(cursor.getString(descriptionColIndex));
-                marker.setAddress(cursor.getString(addressColIndex));
-                marker.setLatitude(cursor.getDouble(latitudeColIndex));
-                marker.setLongitude(cursor.getDouble(longitudeColIndex));
+                marker = new MyMarker()
+                        .id(cursor.getInt(idColIndex))
+                        .title(cursor.getString(titleColIndex))
+                        .description(cursor.getString(descriptionColIndex))
+                        .address(cursor.getString(addressColIndex))
+                        .latitude(cursor.getDouble(latitudeColIndex))
+                        .longitude(cursor.getDouble(longitudeColIndex));
                 markerList.add(marker);
                 cursor.moveToNext();
             }
@@ -48,14 +51,16 @@ public class MyMarkerDatasource {
         return markerList;
     }
 
-    public void getMarker() {
-        // TODO here
+    public Cursor getAllMarkersCursor() {
+        return database.query(DatabaseHelper.TABLE_MARKERS,
+                null, null, null, null, null, null);
     }
 
-    public void addMarker(MyMarker marker) {
-        Log.d("DatabaseHelper", "Adding marker");
+    public int addMarker(MyMarker marker) {
+        Log.d("DatabaseHelper", "Adding marker: " + marker.toString());
         database = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
+        int markerId = 0;
         try {
             database.beginTransaction();
             values.put(DatabaseHelper.COLUMN_MARKER_TITLE, marker.getTitle());
@@ -63,11 +68,12 @@ public class MyMarkerDatasource {
             values.put(DatabaseHelper.COLUMN_MARKER_ADDRESS, marker.getAddress());
             values.put(DatabaseHelper.COLUMN_MARKER_LATITUDE, marker.getLatitude());
             values.put(DatabaseHelper.COLUMN_MARKER_LONGITUDE, marker.getLongitude());
-            database.insert(DatabaseHelper.TABLE_MARKERS, null, values);
+            markerId = (int) database.insert(DatabaseHelper.TABLE_MARKERS, null, values);
             database.setTransactionSuccessful();
         } finally {
             database.endTransaction();
             dbHelper.close();
         }
+        return markerId;
     }
 }
