@@ -1,47 +1,56 @@
 package com.filutkie.gmmhelper.ui;
 
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.ContentValues;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.filutkie.gmmhelper.R;
-import com.filutkie.gmmhelper.database.MyMarkerDatasource;
+import com.filutkie.gmmhelper.data.FeatureContract;
+import com.filutkie.gmmhelper.data.MyMarkerDatasource;
 import com.filutkie.gmmhelper.model.MyMarker;
+import com.filutkie.gmmhelper.utils.GeoUtils;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.OnStreetViewPanoramaReadyCallback;
 import com.google.android.gms.maps.StreetViewPanorama;
-import com.google.android.gms.maps.StreetViewPanoramaFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.StreetViewPanoramaOrientation;
+import com.google.maps.android.MarkerManager;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 public class GoogleMapFragment extends Fragment implements
         OnMapReadyCallback,
@@ -54,58 +63,47 @@ public class GoogleMapFragment extends Fragment implements
         SlidingUpPanelLayout.PanelSlideListener,
         View.OnClickListener {
 
-    private static final String TAG = "GoogleMapFragment";
+    public static final String TAG = "GoogleMapFragment";
 
     private MapFragment mapFragment;
     private GoogleMap map;
-    private Button streetViewButton;
     private StreetViewPanorama streetViewPanorama;
-    private ActionBar actionbar;
-    private MyMarkerDatasource markerDatasource;
-    private SlidingUpPanelLayout mLayout;
-    private TextView titleTextView;
-    private TextView descriptionTextView;
-    //    private TextView myTV;
-//    private ViewSwitcher switcher;
-    private FrameLayout panelHeader;
-//    private Button deleteButton;
+    private MarkerManager markerManager;
 
+    @Bind(R.id.sliding_layout)
+    SlidingUpPanelLayout panelLayout;
+    @Bind(R.id.framelayout_detail_header)
+    FrameLayout panelHeader;
+    @Bind(R.id.textview_panel_title)
+    TextView titleTextView;
+    @Bind(R.id.textview_panel_description)
+    TextView descriptionTextView;
+    @Bind(R.id.fab_marker_add)
+    FloatingActionButton addMarkerButton;
+    @Bind(R.id.fab_mylocation)
+    FloatingActionButton mylocationButton;
+
+    private MyMarkerDatasource markerDatasource;
     private List<MyMarker> myMarkerList;
     private HashMap<Marker, MyMarker> myMarkerHashMap;
-    private static final String KEY_CHECKED_MENU = "key_checked_menu";
-    private static final String KEY_MAP_TYPE = "key_map_type";
-    private int valueCheckedMenu = R.id.submenu_maptype_map;
-    private int valueMapType = GoogleMap.MAP_TYPE_NORMAL;
+    private Marker tempMarker;
 
+    private int mapType = GoogleMap.MAP_TYPE_NORMAL;
     private boolean isScreenRotated;
-    private int actionbarHeight;
+    private boolean isSatellite;
+
+    private static final String KEY_MAP_TYPE = "key_map_type";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_map, container, false);
-        Log.d(TAG, "onCreateView");
+        ButterKnife.bind(this, rootView);
         setHasOptionsMenu(true);
 
-//        switcher = (ViewSwitcher) rootView.findViewById(R.id.viewSwitcher);
-//        myTV = (TextView) switcher.findViewById(R.id.clickable_text_view);
-        mLayout = (SlidingUpPanelLayout) rootView.findViewById(R.id.sliding_layout);
-        panelHeader = (FrameLayout) rootView.findViewById(R.id.framelayout_detail_header);
-        titleTextView = (TextView) rootView.findViewById(R.id.textview_panel_title);
-        descriptionTextView = (TextView) rootView.findViewById(R.id.textview_panel_description);
-        actionbar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-//        deleteButton = (Button) rootView.findViewById(R.id.button_marker_delete);
+        panelLayout.setPanelSlideListener(this);
+        addMarkerButton.setOnClickListener(this);
+        mylocationButton.setOnClickListener(this);
 
-        mLayout.setPanelSlideListener(this);
-        mLayout.setAnchorPoint(0.6f);
-        mLayout.setCoveredFadeColor(0);
-
-//        myTV.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                switcher.showNext(); //or switcher.showPrevious();
-//                myTV.setText("value");
-//            }
-//        });
         FragmentManager fm = getChildFragmentManager();
         mapFragment = (MapFragment) fm.findFragmentById(R.id.map_container);
         if (mapFragment == null) {
@@ -117,18 +115,17 @@ public class GoogleMapFragment extends Fragment implements
         markerDatasource = new MyMarkerDatasource(getActivity());
         mapFragment.getMapAsync(this);
 
-        StreetViewPanoramaFragment streetViewPanoramaFragment =
-                (StreetViewPanoramaFragment) getFragmentManager()
-                        .findFragmentById(R.id.fragment_sv);
-        streetViewPanoramaFragment.getStreetViewPanoramaAsync(this);
+//        StreetViewPanoramaFragment streetViewPanoramaFragment =
+//                (StreetViewPanoramaFragment) getFragmentManager()
+//                        .findFragmentById(R.id.fragment_sv);
+//        streetViewPanoramaFragment.getStreetViewPanoramaAsync(this);
 
-
-        if (savedInstanceState != null) {
-            valueCheckedMenu = savedInstanceState.getInt(KEY_CHECKED_MENU);
-            valueMapType = savedInstanceState.getInt(KEY_MAP_TYPE);
-            isScreenRotated = true;
-        } else {
+        if (savedInstanceState == null) {
+            isSatellite = false;
             isScreenRotated = false;
+        } else {
+            mapType = savedInstanceState.getInt(KEY_MAP_TYPE);
+            isScreenRotated = true;
         }
         return rootView;
     }
@@ -138,10 +135,7 @@ public class GoogleMapFragment extends Fragment implements
         super.onResume();
         map = ((MapFragment) getChildFragmentManager().findFragmentById(R.id.map_container)).getMap();
         map.setMyLocationEnabled(true);
-        TypedValue tv = new TypedValue();
-        if (getActivity().getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
-            actionbarHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
-        }
+        markerManager = new MarkerManager(map);
     }
 
     @Override
@@ -154,84 +148,187 @@ public class GoogleMapFragment extends Fragment implements
     public void onMapReady(GoogleMap googleMap) {
         Log.d(TAG, "onMapReady");
         map = googleMap;
-        googleMap.setMapType(valueMapType);
+        googleMap.setMapType(mapType);
         googleMap.setOnMyLocationChangeListener(this);
         googleMap.setOnMapClickListener(this);
         googleMap.setOnMarkerClickListener(this);
         googleMap.setOnMapLongClickListener(this);
         googleMap.setMyLocationEnabled(true);
-        googleMap.setPadding(0, actionbarHeight, 0, 0);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(false);
         myMarkerList = markerDatasource.getAllMarkers();
         myMarkerHashMap = new HashMap<>();
-        for (MyMarker m : myMarkerList) {
-            Marker marker = placeMarker(m);
-            myMarkerHashMap.put(marker, m);
+
+        MarkerManager.Collection co = markerManager.newCollection("default");
+        for (MyMarker my : myMarkerList) {
+            Marker marker = co.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+                    .position(my.getPosition())
+                    .title(my.getTitle())
+                    .snippet(my.getDescription()));
+            myMarkerHashMap.put(marker, my);
         }
     }
 
-    private Marker placeMarker(MyMarker marker) {
-        return map.addMarker(new MarkerOptions()
-                .position(marker.getPosition())
-                .title(marker.getTitle())
-                .snippet(marker.getDescription())
-                .draggable(true));
+    // TODO implement structure to manage custom markers
+    private Marker placeMarker(MyMarker myMarker) {
+        Marker marker = map.addMarker(
+                new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+                        .position(myMarker.getPosition())
+                        .title(myMarker.getTitle())
+                        .snippet(myMarker.getDescription())
+        );
+        myMarkerHashMap.put(marker, myMarker);
+        return marker;
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        Log.d(TAG, "onCreateOptionsMenu");
         getActivity().getMenuInflater().inflate(R.menu.menu_map, menu);
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-//        MenuItem item = menu.findItem(valueCheckedMenu);
-//        if (!item.isChecked()) {
-//            item.setChecked(true);
-//        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.submenu_maptype_map:
-//                if (!item.isChecked()) {
-//                    item.setChecked(true);
-                map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                getActivity().invalidateOptionsMenu();
-
-//                }
+            case R.id.menu_maptype_toggle:
+                if (map.getMapType() == GoogleMap.MAP_TYPE_TERRAIN) {
+                    map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                } else {
+                    map.setMapType(isSatellite ? GoogleMap.MAP_TYPE_HYBRID : GoogleMap.MAP_TYPE_NORMAL);
+                    isSatellite = !isSatellite;
+                }
                 break;
-            case R.id.submenu_maptype_satellite:
-//                if (!item.isChecked()) {
-//                    item.setChecked(true);
-                map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-                getActivity().invalidateOptionsMenu();
-
-//                }
+            case R.id.menu_maptype_terrain:
+                // prevent blinking on repetitive terrain item selecting
+                if (map.getMapType() != GoogleMap.MAP_TYPE_TERRAIN) {
+                    map.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                }
                 break;
-            case R.id.submenu_maptype_terrain:
-//                if (!item.isChecked()) {
-//                    item.setChecked(true);
-                map.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-                getActivity().invalidateOptionsMenu();
-//                }
+            case R.id.menu_list:
+                // TODO: if tablet then:
+                DialogFragment newFragment = MarkersDialogFragment.newInstance();
+                newFragment.show(getFragmentManager(), "list_dialog");
+                // TODO: if phone then:
+//                FragmentTransaction ft = getFragmentManager().beginTransaction();
+//                DialogFragment newFragment = MarkersDialogFragment.newInstance();
+//                ft.add(R.id.container, newFragment);
+//                ft.commit();
+                break;
+            default:
                 break;
         }
-//        if (item.isCheckable() && item.isChecked()) {
-//            valueCheckedMenu = item.getItemId();
-//            valueMapType = map.getMapType();
-//        }
         return true;
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(KEY_CHECKED_MENU, valueCheckedMenu);
-        outState.putInt(KEY_MAP_TYPE, valueMapType);
+        outState.putInt(KEY_MAP_TYPE, mapType);
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        panelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+        if (tempMarker != null) {
+            tempMarker.remove();
+        }
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        if (tempMarker != null) {
+            tempMarker.remove();
+        }
+        String address = GeoUtils.getLocationAddress(getActivity(), latLng);
+        MarkerOptions markerOptions = new MarkerOptions()
+                .position(latLng)
+                .icon(BitmapDescriptorFactory.fromBitmap(drawCircleMarkerIcon(Color.DKGRAY)))
+                .anchor(0.5f, 0.5f)
+                .title(address);
+        tempMarker = map.addMarker(markerOptions);
+        onMarkerClick(tempMarker);
+    }
+
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+        MyMarker myMarker = myMarkerHashMap.get(marker);
+        map.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+        if (myMarker != null) {
+            panelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+            titleTextView.setText(myMarker.getTitle());
+            descriptionTextView.setText(myMarker.getAddress());
+//            streetViewPanorama.setPosition(marker.getPosition(), 100);
+        } else if (marker.getTitle() != null) {
+            panelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+            titleTextView.setText(marker.getTitle());
+        }
+        return true;
+    }
+
+    @Override
+    public void onClick(View v) {
+        LatLng mapCenter = map.getCameraPosition().target;
+        switch (v.getId()) {
+            case R.id.fab_marker_add:
+                ContentValues values = new ContentValues();
+                values.put(FeatureContract.MarkerEntry.COLUMN_LATITUDE, mapCenter.latitude);
+                values.put(FeatureContract.MarkerEntry.COLUMN_LONGITUDE, mapCenter.longitude);
+                values.put(FeatureContract.MarkerEntry.COLUMN_TITLE, "new marker");
+//                values.put(FeatureContract.MarkerEntry.COLUMN_TIME_ADDED, System.currentTimeMillis());
+                Uri uri = getActivity().getContentResolver().insert(FeatureContract.MarkerEntry.CONTENT_URI, values);
+                Log.d(TAG, "inserted row: " + uri);
+                MyMarker newMarker = new MyMarker()
+                        .id(Integer.parseInt(uri.getLastPathSegment()))
+                        .latitude(mapCenter.latitude)
+                        .longitude(mapCenter.longitude)
+                        .title("new marker");
+                placeMarker(newMarker);
+
+                break;
+            case R.id.fab_mylocation:
+                if (map.getMyLocation() != null) {
+                    LatLng mylocation = new LatLng(
+                            map.getMyLocation().getLatitude(),
+                            map.getMyLocation().getLongitude());
+                    if (map.getCameraPosition().zoom < 8) {
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(mylocation, 14));
+                    } else {
+                        map.animateCamera(CameraUpdateFactory.newLatLng(mylocation));
+                    }
+                }
+                break;
+        }
+    }
+
+    private Bitmap drawCircleMarkerIcon(int color) {
+        int wheight = 25;
+        final Bitmap output = Bitmap.createBitmap(wheight, wheight, Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(output);
+        int col = Color.RED;
+        if (color != 0) {
+            col = color;
+        }
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, wheight, wheight);
+        final RectF rectF = new RectF(rect);
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(col);
+        canvas.drawOval(rectF, paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        return output;
+    }
+
+    @Override
+    public void onStreetViewPanoramaReady(StreetViewPanorama streetViewPanorama) {
+        streetViewPanorama.setOnStreetViewPanoramaClickListener(this);
+        this.streetViewPanorama = streetViewPanorama;
+    }
+
+    @Override
+    public void onStreetViewPanoramaClick(StreetViewPanoramaOrientation streetViewPanoramaOrientation) {
+        Toast.makeText(getActivity(), "Pano clicked.", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -245,64 +342,7 @@ public class GoogleMapFragment extends Fragment implements
     }
 
     @Override
-    public void onMapLongClick(LatLng latLng) {
-        MyMarker myMarker = new MyMarker("title", latLng.latitude, latLng.longitude);
-        String address = getLocationAddress(myMarker.getPosition());
-        myMarker.setAddress(address);
-        int rowId = markerDatasource.addMarker(myMarker);
-        myMarker.setId(rowId);
-        Log.d(TAG, "added: " + myMarker.toString());
-        myMarkerHashMap.put(placeMarker(myMarker), myMarker);
-    }
-
-    // TODO move from ui thread
-    public String getLocationAddress(LatLng latlng) {
-        Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
-        String resultString = "";
-        try {
-            List<Address> addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
-            if (addresses != null && addresses.size() != 0) {
-                Address fetchedAddress = addresses.get(0);
-                StringBuilder strAddress = new StringBuilder();
-                for (int i = 0; i < fetchedAddress.getMaxAddressLineIndex(); i++) {
-                    strAddress.append(fetchedAddress.getAddressLine(i)).append(", ");
-                }
-                resultString = strAddress.toString();
-            } else
-                resultString = "Address not found";
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(getActivity(), "IOException raised", Toast.LENGTH_SHORT).show();
-        }
-        return resultString;
-    }
-
-    @Override
     public void onPanelSlide(View panel, float slideOffset) {
-//        Log.i(TAG, "onPanelSlide, offset " + slideOffset);
-        if (slideOffset > 0) {
-//            myTV.setText("sliding");
-            panelHeader.setBackgroundResource(R.color.color_primary);
-            titleTextView.setTextColor(Color.WHITE);
-            descriptionTextView.setTextColor(Color.WHITE);
-            // TODO optimize method calls
-            if (slideOffset > .8) {
-                if (actionbar.isShowing()) {
-                    actionbar.hide();
-                    map.getUiSettings().setMyLocationButtonEnabled(false);
-                }
-            } else {
-                if (!actionbar.isShowing()) {
-                    actionbar.show();
-                    map.getUiSettings().setMyLocationButtonEnabled(true);
-                }
-            }
-        } else {
-//            myTV.setText("ended");
-            panelHeader.setBackgroundResource(R.color.color_background);
-            titleTextView.setTextColor(Color.BLACK);
-            descriptionTextView.setTextColor(Color.BLACK);
-        }
     }
 
     @Override
@@ -325,40 +365,6 @@ public class GoogleMapFragment extends Fragment implements
         Log.i(TAG, "onPanelHidden");
     }
 
-    @Override
-    public void onMapClick(LatLng latLng) {
-        mLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
-    }
 
-    @Override
-    public boolean onMarkerClick(final Marker marker) {
-        map.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
-        mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-        MyMarker myMarker = myMarkerHashMap.get(marker);
-        titleTextView.setText(myMarker.getTitle());
-        descriptionTextView.setText(myMarker.getAddress());
-        streetViewPanorama.setPosition(marker.getPosition(), 100);
-//        deleteButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                marker.remove();
-//            }
-//        });
-        return true;
-    }
 
-    @Override
-    public void onClick(View v) {
-    }
-
-    @Override
-    public void onStreetViewPanoramaReady(StreetViewPanorama streetViewPanorama) {
-        streetViewPanorama.setOnStreetViewPanoramaClickListener(this);
-        this.streetViewPanorama = streetViewPanorama;
-    }
-
-    @Override
-    public void onStreetViewPanoramaClick(StreetViewPanoramaOrientation streetViewPanoramaOrientation) {
-        Toast.makeText(getActivity(), "Pano clicked.", Toast.LENGTH_SHORT).show();
-    }
 }

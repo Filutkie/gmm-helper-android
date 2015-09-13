@@ -1,58 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-              android:weightSum="1">
+    android:orientation="vertical"
+    android:weightSum="1"
+    >
 
     <FrameLayout
+        android:id="@+id/framelayout_detail_header"
         android:layout_width="match_parent"
         android:layout_height="96dp"
         android:layout_gravity="center_horizontal"
-        android:id="@+id/framelayout_detail_header"
+        android:paddingEnd="@dimen/activity_horizontal_margin"
         android:paddingStart="@dimen/activity_horizontal_margin">
 
-
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_gravity="center"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="vertical">
 
             <TextView
+                android:id="@+id/textview_panel_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Title"
-                android:id="@+id/textview_panel_title"
                 android:layout_gravity="left|center_vertical"
-                android:textColor="#000"
                 android:alpha="0.87"
                 android:singleLine="true"
-                android:textSize="24sp" />
+                android:text="Title"
+                android:textColor="#000"
+                android:textSize="24sp"/>
 
             <TextView
+                android:id="@+id/textview_panel_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
                 android:text="Marker description"
-                android:id="@+id/textview_panel_description" />
+                android:textAppearance="?android:attr/textAppearanceSmall"/>
         </LinearLayout>
 
     </FrameLayout>
 
-    <fragment
-        android:layout_width="match_parent"
-        android:layout_height="270dp"
-        android:name="com.google.android.gms.maps.StreetViewPanoramaFragment"
+    <!--<fragment
         android:id="@+id/fragment_sv"
+        android:name="com.google.android.gms.maps.StreetViewPanoramaFragment"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
         android:layout_gravity="center_horizontal"
-        android:layout_margin="16dp"/>
+        android:layout_margin="16dp"/>-->
 
-    <!--<Button-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text="Delete"-->
-        <!--android:id="@+id/button_marker_delete" />-->
+    <!--<Button
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Delete"
+    android:id="@+id/button_marker_delete" />-->
 
 </LinearLayout>

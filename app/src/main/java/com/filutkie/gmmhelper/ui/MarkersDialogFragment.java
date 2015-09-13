@@ -12,7 +12,6 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -26,15 +25,20 @@ import com.filutkie.gmmhelper.R;
 import com.filutkie.gmmhelper.adapter.MarkerCursorAdapter;
 import com.filutkie.gmmhelper.data.FeatureContract;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 public class MarkersDialogFragment extends DialogFragment implements
         LoaderManager.LoaderCallbacks<Cursor>,
         SearchView.OnQueryTextListener {
 
-    private ListView listView;
+    @Bind(R.id.listview_markers)
+    ListView listView;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
     private CursorAdapter cursorAdapter;
-    private Toolbar toolbar;
-    SearchView mSearchView;
-    String mCurFilter;
+    private SearchView mSearchView;
+    private String mCurFilter;
 
     static MarkersDialogFragment newInstance() {
         return new MarkersDialogFragment();
@@ -51,9 +55,7 @@ public class MarkersDialogFragment extends DialogFragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_markers_list, container, false);
-
-        listView = (ListView) rootView.findViewById(R.id.listview_markers);
-        toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
+        ButterKnife.bind(this, rootView);
         cursorAdapter = new MarkerCursorAdapter(getActivity(), null, false);
 
         listView.setAdapter(cursorAdapter);
@@ -74,7 +76,6 @@ public class MarkersDialogFragment extends DialogFragment implements
                 getDialog().dismiss();
             }
         });
-        getLoaderManager().initLoader(0, null, this);
 
         return rootView;
     }
@@ -82,6 +83,7 @@ public class MarkersDialogFragment extends DialogFragment implements
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        getLoaderManager().initLoader(0, null, this);
         mSearchView = (SearchView) MenuItemCompat.getActionView(
                 toolbar.getMenu().findItem(R.id.action_search));
         mSearchView.setOnQueryTextListener(this);
@@ -91,6 +93,7 @@ public class MarkersDialogFragment extends DialogFragment implements
     @Override
     public void onResume() {
         super.onResume();
+        // TODO: remove hardcode
         int width = getResources().getDimensionPixelSize(R.dimen.dialog_window_width);
         int height = getResources().getDimensionPixelSize(R.dimen.dialog_window_height);
         Window window = getDialog().getWindow();

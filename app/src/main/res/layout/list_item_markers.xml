@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/linearlayout_list_item_root"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:orientation="horizontal">
+
+    <FrameLayout
+        android:id="@+id/framelayout_image_holder"
+        android:layout_width="16dp"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/linearlayout_text_item_holder"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="center_vertical"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
+
+        <TextView
+            android:id="@+id/list_item_title_textview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.87"
+            android:fontFamily="sans-serif"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            tools:text="marker title"/>
+
+        <TextView
+            android:id="@+id/list_item_address_textview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.54"
+            android:paddingTop="2dp"
+            android:textColor="@android:color/black"
+            android:textSize="14sp"
+            tools:text="address"/>
+    </LinearLayout>
+
+</LinearLayout>

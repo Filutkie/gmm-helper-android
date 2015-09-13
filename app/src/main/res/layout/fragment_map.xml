@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:umano="http://schemas.android.com/tools"
+<com.sothree.slidinguppanel.SlidingUpPanelLayout
+    android:id="@+id/sliding_layout"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/sliding_layout"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="bottom"
-    app:umanoPanelHeight="@dimen/sliding_panel_height"
+    app:paddingEnd="64dp"
+    app:paddingStart="64dp"
     app:umanoDragView="@+id/dragView"
-    app:umanoOverlay="true"
+    app:umanoFadeColor="@android:color/transparent"
     app:umanoInitialState="hidden"
-    app:umanoShadowHeight="4dp">
+    app:umanoOverlay="true"
+    app:umanoPanelHeight="@dimen/sliding_panel_height"
+    app:umanoShadowHeight="4dp"
+    >
 
     <!-- Main screen content -->
     <RelativeLayout
@@ -21,47 +26,101 @@
             android:id="@+id/map_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:layout_alignParentBottom="true"/>
-
-        <ImageButton
-            android:id="@+id/angry_btn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/button_map_tool"
-            android:shadowColor="#A8A8A8"
-            android:shadowDx="0"
-            android:shadowDy="0"
-            android:shadowRadius="5"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentStart="false"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="24dp"
-            android:drawableStart="@drawable/ic_map_marker_grey600_24dp"
-            android:src="@drawable/ic_map_marker_grey600_24dp"
+            android:layout_gravity="center"
+            tools:visibility="gone"/>
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_marker_add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
-            android:elevation="1dp"
-            android:cropToPadding="false"
-            android:focusable="true" />
+            android:layout_marginBottom="24dp"
+            android:layout_marginRight="24dp"
+            android:src="@drawable/ic_pin_drop_grey_600_24dp"
+            android:tint="@android:color/background_light"
+            app:elevation="4dp"
+            app:rippleColor="#40ffffff"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_mylocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/fab_marker_add"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="16dp"
+            android:layout_marginRight="24dp"
+            android:src="@drawable/ic_my_location_grey_600_24dp"
+            app:backgroundTint="#ffffff"
+            app:elevation="4dp"/>
 
     </RelativeLayout>
 
     <!-- Sliding panel -->
     <LinearLayout
+        android:id="@+id/dragView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#eeeeee"
-        android:orientation="vertical"
+        android:layout_height="540dp"
+        android:background="@android:color/transparent"
         android:clickable="false"
         android:focusable="false"
-        android:id="@+id/dragView">
+        android:orientation="vertical"
+        >
 
-        <include
-            android:id="@+id/include_panel_content"
-            layout="@layout/sliding_panel_content" />
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="#fff"
+            android:weightSum="1"
+            >
 
+            <FrameLayout
+                android:id="@+id/framelayout_detail_header"
+                android:layout_width="match_parent"
+                android:layout_height="96dp"
+                android:layout_gravity="center_horizontal"
+                android:paddingEnd="@dimen/activity_horizontal_margin"
+                android:paddingStart="@dimen/activity_horizontal_margin">
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_gravity="center"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/textview_panel_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="left|center_vertical"
+                        android:alpha="0.87"
+                        android:singleLine="true"
+                        tools:text="Title"
+                        android:textColor="#000"
+                        android:textSize="24sp"/>
+
+                    <TextView
+                        android:id="@+id/textview_panel_description"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="Marker description"
+                        android:textAppearance="?android:attr/textAppearanceSmall"/>
+                </LinearLayout>
+            </FrameLayout>
+        </LinearLayout>
     </LinearLayout>
 
 </com.sothree.slidinguppanel.SlidingUpPanelLayout>

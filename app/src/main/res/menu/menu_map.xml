@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
-        android:id="@+id/menu_map_type"
-        app:showAsAction="ifRoom"
+
+        android:id="@+id/menu_list"
+        android:icon="@drawable/ic_list_white_24dp"
+        android:title="@string/action_marker_list"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/menu_maptype_toggle"
         android:icon="@drawable/ic_layers_white_24dp"
-        android:title="Map mode">
-        <menu>
-            <group android:checkableBehavior="single">
-                <item
-                    android:title="Map"
-                    android:id="@+id/submenu_maptype_map" />
-                <item
-                    android:title="Satellite"
-                    android:id="@+id/submenu_maptype_satellite" />
-                <item
-                    android:title="Terrain"
-                    android:id="@+id/submenu_maptype_terrain" />
-            </group>
-        </menu>
-    </item>
+        android:title="@string/action_maptype"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/menu_maptype_terrain"
+        android:title="@string/action_terrain"
+        app:showAsAction="never"/>
+
 </menu>
