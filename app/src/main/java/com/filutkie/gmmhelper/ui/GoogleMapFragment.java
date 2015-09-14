@@ -32,6 +32,7 @@ import com.filutkie.gmmhelper.data.FeatureContract;
 import com.filutkie.gmmhelper.data.MyMarkerDatasource;
 import com.filutkie.gmmhelper.model.MyMarker;
 import com.filutkie.gmmhelper.utils.GeoUtils;
+import com.filutkie.gmmhelper.utils.PreferenceHelper;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -277,10 +278,11 @@ public class GoogleMapFragment extends Fragment implements
         LatLng mapCenter = map.getCameraPosition().target;
         switch (v.getId()) {
             case R.id.fab_marker_add:
+                String title = "Marker " + PreferenceHelper.nextMarkerNumber(getActivity());
                 ContentValues values = new ContentValues();
                 values.put(FeatureContract.MarkerEntry.COLUMN_LATITUDE, mapCenter.latitude);
                 values.put(FeatureContract.MarkerEntry.COLUMN_LONGITUDE, mapCenter.longitude);
-                values.put(FeatureContract.MarkerEntry.COLUMN_TITLE, "new marker");
+                values.put(FeatureContract.MarkerEntry.COLUMN_TITLE, title);
 //                values.put(FeatureContract.MarkerEntry.COLUMN_TIME_ADDED, System.currentTimeMillis());
                 Uri uri = getActivity().getContentResolver().insert(FeatureContract.MarkerEntry.CONTENT_URI, values);
                 Log.d(TAG, "inserted row: " + uri);
@@ -288,9 +290,8 @@ public class GoogleMapFragment extends Fragment implements
                         .id(Integer.parseInt(uri.getLastPathSegment()))
                         .latitude(mapCenter.latitude)
                         .longitude(mapCenter.longitude)
-                        .title("new marker");
+                        .title(title);
                 placeMarker(newMarker);
-
                 break;
             case R.id.fab_mylocation:
                 if (map.getMyLocation() != null) {
