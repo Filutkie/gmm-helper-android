@@ -1,10 +1,8 @@
 package com.filutkie.gmmhelper.data;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import com.filutkie.gmmhelper.model.MyMarker;
 
@@ -25,12 +23,12 @@ public class MyMarkerDatasource {
         List<MyMarker> markerList = new ArrayList<>();
         Cursor cursor = database.query(DatabaseHelper.TABLE_MARKERS,
                 null, null, null, null, null, null);
-        int idColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_ID);
-        int titleColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_TITLE);
-        int descriptionColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_DESCRIPTION);
-        int addressColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_ADDRESS);
-        int latitudeColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_LATITUDE);
-        int longitudeColIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_MARKER_LONGITUDE);
+        int idColIndex = cursor.getColumnIndex(FeatureContract.MarkerEntry._ID);
+        int titleColIndex = cursor.getColumnIndex(FeatureContract.MarkerEntry.COLUMN_TITLE);
+        int descriptionColIndex = cursor.getColumnIndex(FeatureContract.MarkerEntry.COLUMN_DESCRIPTION);
+        int addressColIndex = cursor.getColumnIndex(FeatureContract.MarkerEntry.COLUMN_ADDRESS);
+        int latitudeColIndex = cursor.getColumnIndex(FeatureContract.MarkerEntry.COLUMN_LATITUDE);
+        int longitudeColIndex = cursor.getColumnIndex(FeatureContract.MarkerEntry.COLUMN_LONGITUDE);
 
         MyMarker marker;
         if (cursor.moveToFirst()) {
@@ -49,31 +47,5 @@ public class MyMarkerDatasource {
         cursor.close();
         dbHelper.close();
         return markerList;
-    }
-
-    public Cursor getAllMarkersCursor() {
-        return database.query(DatabaseHelper.TABLE_MARKERS,
-                null, null, null, null, null, null);
-    }
-
-    public int addMarker(MyMarker marker) {
-        Log.d("DatabaseHelper", "Adding marker: " + marker.toString());
-        database = dbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        int markerId = 0;
-        try {
-            database.beginTransaction();
-            values.put(DatabaseHelper.COLUMN_MARKER_TITLE, marker.getTitle());
-            values.put(DatabaseHelper.COLUMN_MARKER_DESCRIPTION, marker.getDescription());
-            values.put(DatabaseHelper.COLUMN_MARKER_ADDRESS, marker.getAddress());
-            values.put(DatabaseHelper.COLUMN_MARKER_LATITUDE, marker.getLatitude());
-            values.put(DatabaseHelper.COLUMN_MARKER_LONGITUDE, marker.getLongitude());
-            markerId = (int) database.insert(DatabaseHelper.TABLE_MARKERS, null, values);
-            database.setTransactionSuccessful();
-        } finally {
-            database.endTransaction();
-            dbHelper.close();
-        }
-        return markerId;
     }
 }

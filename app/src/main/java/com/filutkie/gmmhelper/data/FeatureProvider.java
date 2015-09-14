@@ -5,9 +5,13 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
+
+import com.filutkie.gmmhelper.data.FeatureContract.MarkerEntry;
 
 public class FeatureProvider extends ContentProvider {
 
@@ -15,7 +19,7 @@ public class FeatureProvider extends ContentProvider {
 
     private DatabaseHelper mOpenHelper;
 
-    public static final int MARKER = 10;
+    public static final int MARKERS = 10;
     public static final int MARKER_WITH_ID = 11;
     public static final int MARKER_WITH_TITLE = 12;
 
@@ -31,7 +35,7 @@ public class FeatureProvider extends ContentProvider {
         uriMatcher.addURI(
                 FeatureContract.CONTENT_AUTHORITY,
                 FeatureContract.PATH_MARKER,
-                FeatureProvider.MARKER);
+                FeatureProvider.MARKERS);
         uriMatcher.addURI(
                 FeatureContract.CONTENT_AUTHORITY,
                 FeatureContract.PATH_MARKER + "/#",
@@ -49,7 +53,7 @@ public class FeatureProvider extends ContentProvider {
                         String[] selectionArgs, String sortOrder) {
         Cursor cursor;
         switch (sUriMatcher.match(uri)) {
-            case MARKER:
+            case MARKERS:
                 cursor = mOpenHelper.getReadableDatabase().query(
                         FeatureContract.MarkerEntry.TABLE_NAME,
                         projection,
@@ -62,7 +66,7 @@ public class FeatureProvider extends ContentProvider {
                 break;
             case MARKER_WITH_ID:
                 String whereClauseId = FeatureContract.MarkerEntry.COLUMN_TITLE + " = ?";
-                String[] whereId = { uri.getLastPathSegment() };
+                String[] whereId = {uri.getLastPathSegment()};
                 Log.d("Provider", "with title called: " + uri.toString());
                 cursor = mOpenHelper.getReadableDatabase().query(
                         FeatureContract.MarkerEntry.TABLE_NAME,
@@ -76,7 +80,7 @@ public class FeatureProvider extends ContentProvider {
                 break;
             case MARKER_WITH_TITLE:
                 String whereClause = FeatureContract.MarkerEntry.COLUMN_TITLE + " LIKE ?";
-                String[] where = { uri.getLastPathSegment() + "%" };
+                String[] where = {uri.getLastPathSegment() + "%"};
                 Log.d("Provider", "with title called: " + uri.toString());
                 cursor = mOpenHelper.getReadableDatabase().query(
                         FeatureContract.MarkerEntry.TABLE_NAME,
@@ -100,12 +104,13 @@ public class FeatureProvider extends ContentProvider {
         Uri returnUri;
 
         switch (sUriMatcher.match(uri)) {
-            case MARKER:
-                long _id = db.insert(FeatureContract.MarkerEntry.TABLE_NAME, null, values);
+            case MARKERS:
+                long _id = db.insert(MarkerEntry.TABLE_NAME, null, values);
                 if (_id > 0)
-                    returnUri = ContentUris.withAppendedId(FeatureContract.MarkerEntry.CONTENT_URI, _id);
+                    returnUri = ContentUris.withAppendedId(
+                            MarkerEntry.CONTENT_URI, _id);
                 else
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                    throw new SQLException("Failed to insert row into " + uri);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -117,21 +122,57 @@ public class FeatureProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection,
                       String[] selectionArgs) {
-        // TODO: Implement this to handle requests to update one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int count;
+        switch (sUriMatcher.match(uri)) {
+            case MARKERS:
+                count = db.update(MarkerEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            case MARKER_WITH_ID:
+                String segment = uri.getPathSegments().get(1);
+                count = db.update(
+                        MarkerEntry.TABLE_NAME,
+                        values, MarkerEntry._ID + "=" + segment
+                                + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ")" : ""),
+                        selectionArgs);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported URI: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return count;
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        // Implement this to handle requests to delete one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int count;
+        switch (sUriMatcher.match(uri)) {
+            case MARKERS:
+                count = db.delete(MarkerEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case MARKER_WITH_ID:
+                String segment = uri.getPathSegments().get(1);
+                count = db.delete(MarkerEntry.TABLE_NAME,
+                        MarkerEntry._ID + "=" + segment
+                                + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ")" : ""),
+                        selectionArgs);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported URI: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return count;
     }
 
     @Override
     public String getType(Uri uri) {
         switch (sUriMatcher.match(uri)) {
-            case MARKER:
-                return FeatureContract.MarkerEntry.CONTENT_TYPE;
+            case MARKERS:
+                return MarkerEntry.CONTENT_TYPE_DIR;
+            case MARKER_WITH_ID:
+            case MARKER_WITH_TITLE:
+                return MarkerEntry.CONTENT_TYPE_ITEM;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
