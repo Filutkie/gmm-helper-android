@@ -24,6 +24,7 @@ import android.widget.ListView;
 import com.filutkie.gmmhelper.R;
 import com.filutkie.gmmhelper.adapter.MarkerCursorAdapter;
 import com.filutkie.gmmhelper.data.FeatureContract;
+import com.filutkie.gmmhelper.data.FeatureContract.MarkerEntry;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -104,19 +105,21 @@ public class MarkersDialogFragment extends DialogFragment implements
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         Uri baseUri;
+        String sortOrder = null;
         if (mCurFilter != null) {
             baseUri = Uri.withAppendedPath(
-                    FeatureContract.MarkerEntry.CONTENT_URI,
+                    MarkerEntry.CONTENT_URI,
                     Uri.encode(mCurFilter));
         } else {
-            baseUri = FeatureContract.MarkerEntry.CONTENT_URI;
+            baseUri = MarkerEntry.CONTENT_URI;
+            sortOrder = MarkerEntry._ID + " DESC";
         }
         return new CursorLoader(getActivity(),
                 baseUri,
                 null,
                 null,
                 null,
-                null);
+                sortOrder);
     }
 
     @Override
