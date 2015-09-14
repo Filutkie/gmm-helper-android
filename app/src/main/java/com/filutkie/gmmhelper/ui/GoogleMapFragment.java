@@ -231,22 +231,27 @@ public class GoogleMapFragment extends Fragment implements
     public void onMapClick(LatLng latLng) {
         panelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
         if (tempMarker != null) {
-            tempMarker.remove();
+            tempMarker.setVisible(false);
         }
     }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
+        String address = GeoUtils.getStringFromAddress(GeoUtils.getLocationAddress(getActivity(), latLng));
         if (tempMarker != null) {
-            tempMarker.remove();
+            tempMarker.setVisible(false);
+        } else {
+            MarkerOptions markerOptions = new MarkerOptions()
+                    .position(latLng)
+                    .icon(BitmapDescriptorFactory.fromBitmap(drawCircleMarkerIcon(Color.DKGRAY)))
+                    .anchor(0.5f, 0.5f)
+                    .title(address);
+            tempMarker = map.addMarker(markerOptions);
         }
-        String address = GeoUtils.getLocationAddress(getActivity(), latLng);
-        MarkerOptions markerOptions = new MarkerOptions()
-                .position(latLng)
-                .icon(BitmapDescriptorFactory.fromBitmap(drawCircleMarkerIcon(Color.DKGRAY)))
-                .anchor(0.5f, 0.5f)
-                .title(address);
-        tempMarker = map.addMarker(markerOptions);
+        tempMarker.setPosition(latLng);
+        tempMarker.setTitle(address);
+        tempMarker.setSnippet("");
+        tempMarker.setVisible(true);
         onMarkerClick(tempMarker);
     }
 
@@ -262,6 +267,7 @@ public class GoogleMapFragment extends Fragment implements
         } else if (marker.getTitle() != null) {
             panelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
             titleTextView.setText(marker.getTitle());
+            descriptionTextView.setText(marker.getSnippet());
         }
         return true;
     }
