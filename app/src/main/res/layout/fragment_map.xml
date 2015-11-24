@@ -47,8 +47,7 @@
             android:layout_alignParentEnd="true"
             android:layout_marginBottom="24dp"
             android:layout_marginRight="24dp"
-            android:src="@drawable/ic_pin_drop_grey_600_24dp"
-            android:tint="@android:color/background_light"
+            android:src="@drawable/ic_add_location_white_24dp"
             app:elevation="4dp"
             app:rippleColor="#40ffffff"/>
 

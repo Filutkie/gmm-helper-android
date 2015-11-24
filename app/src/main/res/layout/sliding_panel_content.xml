@@ -5,8 +5,7 @@
     android:layout_height="match_parent"
     android:background="#fff"
     android:orientation="vertical"
-    android:weightSum="1"
-    >
+    android:weightSum="1">
 
     <FrameLayout
         android:id="@+id/framelayout_detail_header"
@@ -40,18 +39,22 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 tools:text="Marker description"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="open"
+                android:id="@+id/button_details"
+                android:layout_gravity="center_horizontal"/>
         </LinearLayout>
     </FrameLayout>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Button"
-        android:id="@+id/button"/>
 
     <include
         android:layout_width="wrap_content"
         android:layout_height="1dp"
         layout="@layout/divider"
-        android:layout_gravity="center_horizontal"/>
+        android:layout_gravity="center_horizontal"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"/>
+
 </LinearLayout>
