@@ -2,7 +2,9 @@ package com.filutkie.gmmhelper.model;
 
 import com.google.android.gms.maps.model.LatLng;
 
-public class MyMarker extends AbstractMarker{
+import java.util.Objects;
+
+public  class MyMarker {
 
     private int id;
     private String title;
@@ -53,10 +55,6 @@ public class MyMarker extends AbstractMarker{
         return description;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
     public double getLatitude() {
         return latitude;
     }
@@ -69,20 +67,37 @@ public class MyMarker extends AbstractMarker{
         return new LatLng(latitude, longitude);
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MyMarker myMarker = (MyMarker) o;
+        return Objects.equals(id, myMarker.id) &&
+                Objects.equals(latitude, myMarker.latitude) &&
+                Objects.equals(longitude, myMarker.longitude) &&
+                Objects.equals(address, myMarker.address) &&
+                Objects.equals(title, myMarker.title) &&
+                Objects.equals(description, myMarker.description);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, address, title, description, latitude, longitude);
+    }
+
     @Override
     public String toString() {
         return "MyMarker{" +
                 "id=" + id +
+                ", address='" + address + '\'' +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", address='" + address + '\'' +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
                 '}';
-    }
-
-    @Override
-    public int getType() {
-        return TYPE_MARKER_DEFAULT;
     }
 }
