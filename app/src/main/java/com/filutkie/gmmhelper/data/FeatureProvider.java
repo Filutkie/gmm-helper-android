@@ -48,6 +48,35 @@ public class FeatureProvider extends ContentProvider {
         return uriMatcher;
     }
 
+    private Cursor getMarkerById(Uri uri, String[] projection) {
+        int id = MarkerEntry.getIdFromUri(uri);
+        String selection = MarkerEntry._ID + " = ?";
+        String[] selectionArgs = {Integer.toString(id)};
+        return mOpenHelper.getReadableDatabase().query(
+                FeatureContract.MarkerEntry.TABLE_NAME,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+        );
+    }
+
+    private Cursor getMarkerByTitle(Uri uri, String[] projection, String sortOrder) {
+        String selection = FeatureContract.MarkerEntry.COLUMN_TITLE + " LIKE ?";
+        String[] selectionArgs = {uri.getLastPathSegment() + "%"};
+        return mOpenHelper.getReadableDatabase().query(
+                FeatureContract.MarkerEntry.TABLE_NAME,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                sortOrder
+        );
+    }
+
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
@@ -65,32 +94,12 @@ public class FeatureProvider extends ContentProvider {
                 );
                 break;
             case MARKER_WITH_ID:
-                String whereClauseId = FeatureContract.MarkerEntry.COLUMN_TITLE + " = ?";
-                String[] whereId = {uri.getLastPathSegment()};
-                Log.d("Provider", "with title called: " + uri.toString());
-                cursor = mOpenHelper.getReadableDatabase().query(
-                        FeatureContract.MarkerEntry.TABLE_NAME,
-                        projection,
-                        whereClauseId,
-                        whereId,
-                        null,
-                        null,
-                        sortOrder
-                );
+                Log.d("Provider", "marker with id: " + uri.toString());
+                cursor = getMarkerById(uri, projection);
                 break;
             case MARKER_WITH_TITLE:
-                String whereClause = FeatureContract.MarkerEntry.COLUMN_TITLE + " LIKE ?";
-                String[] where = {uri.getLastPathSegment() + "%"};
-                Log.d("Provider", "with title called: " + uri.toString());
-                cursor = mOpenHelper.getReadableDatabase().query(
-                        FeatureContract.MarkerEntry.TABLE_NAME,
-                        projection,
-                        whereClause,
-                        where,
-                        null,
-                        null,
-                        sortOrder
-                );
+                Log.d("Provider", "marker with title: " + uri.toString());
+                cursor = getMarkerByTitle(uri, projection, sortOrder);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -107,8 +116,7 @@ public class FeatureProvider extends ContentProvider {
             case MARKERS:
                 long _id = db.insert(MarkerEntry.TABLE_NAME, null, values);
                 if (_id > 0)
-                    returnUri = ContentUris.withAppendedId(
-                            MarkerEntry.CONTENT_URI, _id);
+                    returnUri = ContentUris.withAppendedId(MarkerEntry.CONTENT_URI, _id);
                 else
                     throw new SQLException("Failed to insert row into " + uri);
                 break;
@@ -120,8 +128,7 @@ public class FeatureProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri, ContentValues values, String selection,
-                      String[] selectionArgs) {
+    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int count;
         switch (sUriMatcher.match(uri)) {
@@ -152,10 +159,10 @@ public class FeatureProvider extends ContentProvider {
                 count = db.delete(MarkerEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             case MARKER_WITH_ID:
-                String segment = uri.getPathSegments().get(1);
+                String id = uri.getLastPathSegment();
                 count = db.delete(MarkerEntry.TABLE_NAME,
-                        MarkerEntry._ID + "=" + segment
-                                + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ")" : ""),
+                        MarkerEntry._ID + "=" + id
+                                + (TextUtils.isEmpty(selection) ? "" : " AND (" + selection + ")"),
                         selectionArgs);
                 break;
             default:
